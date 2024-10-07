@@ -1,5 +1,3 @@
--- debug.lua
-
 return {
   'mfussenegger/nvim-dap',
   dependencies = {

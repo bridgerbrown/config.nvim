@@ -26,7 +26,7 @@ vim.g.have_nerd_font = true
 vim.opt.number = true
 vim.opt.relativenumber = false
 vim.opt.mouse = 'a'
-vim.opt.showmode = true
+vim.opt.showmode = false
 vim.opt.tabstop = 2
 vim.opt.shiftwidth = 2
 vim.opt.autoindent = true
@@ -581,8 +581,6 @@ require('lazy').setup({
   require 'kickstart.plugins.debug',
   require 'kickstart.plugins.lint',
   require 'kickstart.plugins.autopairs',
-  require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
-
 
   { import = 'custom.plugins' },
 }, {
