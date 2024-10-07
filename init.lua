@@ -17,9 +17,6 @@
 =====================================================================
 --]]
 
--- [[ Startup ]]
-vim.api.nvim_create_autocmd("VimEnter", { command = "Ex" })
-
 -- [[ Globals ]]
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
@@ -27,9 +24,9 @@ vim.g.have_nerd_font = true
 
 -- [[ Setting options ]]
 vim.opt.number = true
-vim.opt.relativenumber = true
+vim.opt.relativenumber = false
 vim.opt.mouse = 'a'
-vim.opt.showmode = false
+vim.opt.showmode = true
 vim.opt.tabstop = 2
 vim.opt.shiftwidth = 2
 vim.opt.autoindent = true
@@ -49,10 +46,10 @@ vim.opt.timeoutlen = 300 -- Decrease mapped sequence wait time
 vim.opt.splitright = true
 vim.opt.splitbelow = true
 vim.opt.list = true
-vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣' }
+vim.opt.listchars = { tab = '  ', trail = ' ', nbsp = ' ' }
 vim.opt.inccommand = 'split' -- Preview substitutions live, as you type!
 vim.opt.cursorline = true
-vim.opt.scrolloff = 10 -- Minimal number of screen lines to keep above and below the cursor.
+vim.opt.scrolloff = 8 -- Minimal number of screen lines to keep above and below the cursor.
 
 -- [[ Basic Keymaps ]]
 vim.keymap.set('n', '<leader>w', ':w<CR>')
@@ -536,29 +533,29 @@ require('lazy').setup({
       -- Simple and easy statusline.
       --  You could remove this setup call if you don't like it,
       --  and try some other statusline plugin
-      local statusline = require 'mini.statusline'
-      -- set use_icons to true if you have a Nerd Font
-      statusline.setup { use_icons = vim.g.have_nerd_font }
-      -- You can configure sections in the statusline by overriding their
-      -- default behavior. For example, here we set the section for
-      -- cursor location to LINE:COLUMN
-      ---@diagnostic disable-next-line: duplicate-set-field
-      statusline.section_location = function()
-        return '%2l:%-2v'
-      end
-      ---@diagnostic disable-next-line: duplicate-set-field
-      statusline.section_diff = function()
-        return ''
-      end
-      ---@diagnostic disable-next-line: duplicate-set-field
-      statusline.section_lsp = function()
-        return ''
-      end
-      ---@diagnostic disable-next-line: duplicate-set-field
-      statusline.section_fileinfo = function()
-        return ''
-      end
-
+      -- local statusline = require 'mini.statusline'
+      -- -- set use_icons to true if you have a Nerd Font
+      -- statusline.setup { use_icons = vim.g.have_nerd_font }
+      -- -- You can configure sections in the statusline by overriding their
+      -- -- default behavior. For example, here we set the section for
+      -- -- cursor location to LINE:COLUMN
+      -- ---@diagnostic disable-next-line: duplicate-set-field
+      -- statusline.section_location = function()
+      --   return '%2l:%-2v'
+      -- end
+      -- ---@diagnostic disable-next-line: duplicate-set-field
+      -- statusline.section_diff = function()
+      --   return ''
+      -- end
+      -- ---@diagnostic disable-next-line: duplicate-set-field
+      -- statusline.section_lsp = function()
+      --   return ''
+      -- end
+      -- ---@diagnostic disable-next-line: duplicate-set-field
+      -- statusline.section_fileinfo = function()
+      --   return ''
+      -- end
+      --
       --  Check out: https://github.com/echasnovski/mini.nvim
     end,
   },
@@ -584,8 +581,8 @@ require('lazy').setup({
   require 'kickstart.plugins.debug',
   require 'kickstart.plugins.lint',
   require 'kickstart.plugins.autopairs',
-  require 'kickstart.plugins.neo-tree',
   require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
+
 
   { import = 'custom.plugins' },
 }, {
