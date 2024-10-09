@@ -1,26 +1,16 @@
 return {
   'mfussenegger/nvim-dap',
   dependencies = {
-    -- Creates a beautiful debugger UI
-    'rcarriga/nvim-dap-ui',
-
-    -- Required dependency for nvim-dap-ui
-    'nvim-neotest/nvim-nio',
-
     -- Installs the debug adapters for you
     'williamboman/mason.nvim',
     'jay-babu/mason-nvim-dap.nvim',
 
     -- Add debuggers here
     'mfussenegger/nvim-dap-python',
-    'microsoft/vscode-js-debug',
-    'microsoft/vscode-node-debug2',
   },
-  keys = function(_, keys)
+  keys = function(_)
     local dap = require 'dap'
-    local dapui = require 'dapui'
     return {
-      -- Basic debugging keymaps, feel free to change to your liking!
       { '<F5>', dap.continue, desc = 'Debug: Start/Continue' },
       { '<F1>', dap.step_into, desc = 'Debug: Step Into' },
       { '<F2>', dap.step_over, desc = 'Debug: Step Over' },
@@ -33,122 +23,103 @@ return {
         end,
         desc = 'Debug: Set Breakpoint',
       },
-      -- Toggle to see last session result. Without this, you can't see session output in case of unhandled exception.
-      { '<F7>', dapui.toggle, desc = 'Debug: See last session result.' },
-      unpack(keys),
     }
   end,
   config = function()
     local dap = require 'dap'
-    local dapui = require 'dapui'
 
     require('mason-nvim-dap').setup {
-      -- Makes a best effort to setup the various debuggers with
-      -- reasonable debug configurations
       automatic_installation = true,
-
-      -- You can provide additional configuration to the handlers,
-      -- see mason-nvim-dap README for more information
       handlers = {},
       ensure_installed = {
-        -- Update this to ensure that you have the debuggers for the langs you want
-        'delve',
-        'debugpy'
+        'python',
       },
     }
-
-    -- Dap UI setup
-    -- For more information, see |:help nvim-dap-ui|
-    dapui.setup {
-      controls = {
-        element = 'repl',
-        enabled = true,
-        icons = {
-          expanded = '▾',
-          collapsed = '▸',
-          current_frame = '*',
-          pause = '⏸',
-          play = '▶',
-          step_into = '⏎',
-          step_over = '⏭',
-          step_out = '⏮',
-          step_back = 'b',
-          run_last = '▶▶',
-          terminate = '⏹',
-          disconnect = '⏏',
-        },
-      },
-      element_mappings = {},
-      expand_lines = true,
-      floating = {
-        border = 'single',
-        mappings = {
-          close = { 'q', '<Esc>' },
-        },
-      },
-      force_buffers = true,
-      icons = {
-        collapsed = '',
-        current_frame = '',
-        expanded = '',
-      },
-      layouts = {
-        {
-          elements = {
-            {
-              id = 'scopes',
-              size = 0.25,
-            },
-            {
-              id = 'breakpoints',
-              size = 0.25,
-            },
-            {
-              id = 'stacks',
-              size = 0.25,
-            },
-            {
-              id = 'watches',
-              size = 0.25,
-            },
-          },
-          position = 'left',
-          size = 40,
-        },
-        {
-          elements = {
-            {
-              id = 'repl',
-              size = 0.5,
-            },
-            {
-              id = 'console',
-              size = 0.5,
-            },
-          },
-          position = 'bottom',
-          size = 10,
-        },
-      },
-      mappings = {
-        edit = 'e',
-        expand = { '<CR>', '<2-LeftMouse>' },
-        open = 'o',
-        remove = 'd',
-        repl = 'r',
-        toggle = 't',
-      },
-      render = {
-        indent = 1,
-        max_value_lines = 100,
-      },
+    dap.configurations.python = {
+      {
+        name = "Run Scenario",
+        type = "python",
+        request = "launch",
+        program = "${workspaceFolder}",
+        console = "integratedTerminal",
+      }
     }
 
-    dap.listeners.after.event_initialized['dapui_config'] = dapui.open
-    dap.listeners.before.event_terminated['dapui_config'] = dapui.close
-    dap.listeners.before.event_exited['dapui_config'] = dapui.close
+    dap.defaults.fallback.terminal_win_cmd = 'belowright 10split new'
+    dap.defaults.fallback.focus_terminal = true
 
-    -- Install golang specific config
-    require('dap-python').setup("python")
+    local dap_python = require("dap-python")
+    local venv_python_path = vim.fn.getcwd() .. '/venv/bin/python'
+    dap_python.setup(venv_python_path)
+
+    local test_runners = require('dap-python').test_runners
+    -- Custom test runner for Behave
+    test_runners.behave = function(classnames, methodname)
+      local args = {}
+
+      -- Add the feature file path
+      local feature_file = "features/" .. classnames[1]
+      print("feature path: ", feature_file)
+
+      -- If a specific scenario name is provided, include it in the arguments
+      if methodname then
+        table.insert(args, "-n")
+        table.insert(args, methodname)
+      end
+
+      -- Return the module name and the arguments for Behave
+      return 'behave', { feature_file, "--no-capture", unpack(args) }
+    end
+
+    -- use launch.json for configuration
+    require('dap.ext.vscode').load_launchjs(nil, nil)
+
+    vim.env.PYTHONPATH = vim.fn.getcwd()
+
+
+    local get_string_of_visual_selection = function()
+      local _, srow, scol = unpack(vim.fn.getpos('v'))
+      local _, erow, ecol = unpack(vim.fn.getpos('.'))
+      if vim.fn.mode() == 'v' then
+        local text
+        if srow < erow or (srow == erow and scol <= ecol) then
+          text = vim.api.nvim_buf_get_text(0, srow - 1, scol - 1, erow - 1, ecol, {})
+        else
+          text = vim.api.nvim_buf_get_text(0, erow - 1, ecol - 1, srow - 1, scol, {})
+        end
+
+        return table.concat(text, "\n")
+      end
+
+      return ""
+    end
+
+    -- Function to run the test based on the selected scenario name
+    local run_behave_scenario = function()
+      local visual_selection = get_string_of_visual_selection()
+
+      -- Prepare the feature file path
+      local feature_file = vim.fn.getcwd() .. "/features/"  -- Update as needed
+
+      -- Run the DAP command
+      dap.run({
+          type = "python",
+          request = "launch",
+          name = "Run Behave Scenario",
+          program = "${workspaceFolder}/venv/bin/behave",
+          args = {
+              feature_file,
+              "--no-capture",
+              "--no-color",
+              "-n",
+              visual_selection -- Use the selected scenario name
+          },
+          cwd = vim.fn.getcwd(),
+          console = "integratedTerminal"
+      })
+    end
+
+    -- Create a command or key mapping to invoke the function
+    vim.keymap.set('v', '<leader>r', function() run_behave_scenario() end, { noremap = true, silent = true })
   end,
 }
