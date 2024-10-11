@@ -50,6 +50,8 @@ vim.opt.listchars = { tab = '  ', trail = ' ', nbsp = ' ' }
 vim.opt.inccommand = 'split' -- Preview substitutions live, as you type!
 vim.opt.cursorline = true
 vim.opt.scrolloff = 8 -- Minimal number of screen lines to keep above and below the cursor.
+vim.opt.wrap = false
+vim.cmd [[let &stc = '%s%3l %=%#Normal# ']]  -- Adds a space between status col and buffer text
 
 -- [[ Basic Keymaps ]]
 vim.keymap.set('n', '<leader>w', ':w<CR>')
@@ -64,6 +66,11 @@ vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagn
 vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
 
 local set = vim.opt_local
+
+-- Darker Terminal BG
+vim.api.nvim_create_augroup("_terminal", { clear = true })
+vim.api.nvim_create_autocmd("TermOpen", { command = "setlocal winhighlight=Normal:NormalFloat", group = "_terminal", })
+vim.api.nvim_set_hl(0, 'WinSeparator', { bg = '#000000', fg = '#000000' })
 
 -- Set local settings for terminal buffers
 vim.api.nvim_create_autocmd("TermOpen", {
@@ -89,12 +96,16 @@ vim.keymap.set("n", ",st", function()
   vim.cmd.term()
 end)
 
-
 --  Use CTRL+<hjkl> to switch between windows
 vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
 vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
+
+vim.keymap.set("n", "<leader>sv", "<C-w>v") -- split window vertically
+vim.keymap.set("n", "<leader>sh", "<C-w>s") -- split window horizontally
+vim.keymap.set("n", "<leader>se", "<C-w>=") -- make split windows equal width
+vim.keymap.set("n", "<leader>sx", ":close<CR>") -- close current split window
 
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
@@ -528,10 +539,15 @@ require('lazy').setup({
   },
 
   {
-    'folke/tokyonight.nvim',
+    'rebelot/kanagawa.nvim',
+    -- 'rose-pine/neovim',
+    -- 'folke/tokyonight.nvim',
     priority = 1000, -- Make sure to load this before all the other start plugins.
     init = function()
-      vim.cmd.colorscheme 'tokyonight-night'
+      vim.cmd.colorscheme 'kanagawa'
+      -- vim.cmd.colorscheme 'rose-pine'
+      -- vim.cmd.colorscheme 'tokyonight-night'
+
       -- You can configure highlights by doing something like:
       vim.cmd.hi 'Comment gui=none'
     end,

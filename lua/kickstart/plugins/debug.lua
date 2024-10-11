@@ -12,6 +12,7 @@ return {
     local dap = require 'dap'
     return {
       { '<F5>', dap.continue, desc = 'Debug: Start/Continue' },
+      { '<F4>', dap.pause, desc = 'Debug: Pause' },
       { '<F1>', dap.step_into, desc = 'Debug: Step Into' },
       { '<F2>', dap.step_over, desc = 'Debug: Step Over' },
       { '<F3>', dap.step_out, desc = 'Debug: Step Out' },
@@ -45,7 +46,7 @@ return {
       }
     }
 
-    dap.defaults.fallback.terminal_win_cmd = 'belowright 10split new'
+    dap.defaults.fallback.terminal_win_cmd = 'belowright 20split new'
     dap.defaults.fallback.focus_terminal = true
 
     local dap_python = require("dap-python")
@@ -120,6 +121,6 @@ return {
     end
 
     -- Create a command or key mapping to invoke the function
-    vim.keymap.set('v', '<leader>r', function() run_behave_scenario() end, { noremap = true, silent = true })
+    vim.keymap.set('v', '<leader>t', function() run_behave_scenario() end, { noremap = true, silent = true })
   end,
 }
