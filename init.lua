@@ -456,19 +456,24 @@ require('lazy').setup({
 
       -- Enable the following language servers
       local servers = {
-        pyright = {},
+        basedpyright = {
+          enabled = true,
+          settings = {
+            venv =  vim.fn.getcwd() .. '/venv/bin/python',
+            basedpyright = {
+              analysis = {
+                typeCheckingMode = "off"
+              }
+            }
+          }
+        },
         ts_ls = {},
         lua_ls = {
-          -- cmd = {...},
-          -- filetypes = { ...},
-          -- capabilities = {},
           settings = {
             Lua = {
               completion = {
                 callSnippet = 'Replace',
               },
-              -- You can toggle below to ignore Lua_LS's noisy `missing-fields` warnings
-              -- diagnostics = { disable = { 'missing-fields' } },
             },
           },
         },
@@ -478,30 +483,18 @@ require('lazy').setup({
       --  To check the current status of installed tools and/or manually install
       --  other tools, you can run
       --    :Mason
-      --
-      --  You can press `g?` for help in this menu.
-      require('lspconfig').pyright.setup {
-          settings = {
-              python = {
-                  pythonPath = vim.fn.getcwd() .. '/venv/bin/python',
-              },
-          },
-      }
-
       require('mason').setup()
-
-      -- Call :Mason to install after adding
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
         'debugpy', -- Python debugger
-        'pyright' -- Python LSP
+        'basedpyright' -- Python LSP
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
       require('mason-lspconfig').setup {
         ensure_installed = {
-          'pyright'
+          'basedpyright',
         },
         handlers = {
           function(server_name)

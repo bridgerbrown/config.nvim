@@ -110,4 +110,9 @@ return {
       require('el').setup { generator = generator }
     end
   },
+  { "avanzzzi/behave.vim",
+    config = function()
+      vim.keymap.set("v", "<leader>bs", ":call behave#goto_step_definition()<CR>")
+    end
+  }
 }
