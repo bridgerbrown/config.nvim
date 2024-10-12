@@ -59,6 +59,10 @@ vim.keymap.set('n', '<C-q>', ':q<CR>')
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 vim.keymap.set('n', '<leader>e', ':Ex<CR>')
 
+-- Next/prev buffer
+vim.keymap.set('n', '<leader>bn', ':bnext<CR>', { desc = 'Next buffer'})
+vim.keymap.set('n', '<leader>bp', ':bprev<CR>', { desc = 'Prev buffer'})
+
 -- Diagnostic keymaps
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 
@@ -96,16 +100,15 @@ vim.keymap.set("n", ",st", function()
   vim.cmd.term()
 end)
 
---  Use CTRL+<hjkl> to switch between windows
-vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
-vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
-vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
-vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
-
-vim.keymap.set("n", "<leader>sv", "<C-w>v") -- split window vertically
-vim.keymap.set("n", "<leader>sh", "<C-w>s") -- split window horizontally
-vim.keymap.set("n", "<leader>se", "<C-w>=") -- make split windows equal width
-vim.keymap.set("n", "<leader>sx", ":close<CR>") -- close current split window
+-- Windows management
+vim.keymap.set('n', '<leader>wh', '<C-w><C-h>', { desc = 'Move focus to the left window' })
+vim.keymap.set('n', '<leader>wl', '<C-w><C-l>', { desc = 'Move focus to the right window' })
+vim.keymap.set('n', '<leader>wj', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
+vim.keymap.set('n', '<leader>wk', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
+vim.keymap.set("n", "<leader>wv", "<C-w>v") -- split window vertically
+vim.keymap.set("n", "<leader>wm", "<C-w>s") -- split window horizontally
+vim.keymap.set("n", "<leader>we", "<C-w>=") -- make split windows equal width
+vim.keymap.set("n", "<leader>wx", ":close<CR>") -- close current split window
 
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
@@ -170,8 +173,92 @@ require('lazy').setup({
 
       -- Useful for getting pretty icons, but requires a Nerd Font.
       { 'nvim-tree/nvim-web-devicons', enabled = vim.g.have_nerd_font },
+
+      { 'nvim-telescope/telescope-fzf-native.nvim', build = 'make' },
+
+      -- For grep functions
+      'burntsushi/ripgrep',
+      'sharkdp/fd',
     },
     config = function()
+      -- Custom layout (taken from soer9459)
+      local ts = require('telescope')
+      local standard_h_pct = 1
+      local standard_w_pct = 1
+      local full_h_pct = 1
+      local full_w_pct = 1
+      local w_limit = 75
+      local standard_setup = {
+        borderchars = { '─', '│', '─', '│', '┌', '┐', '┘', '└' },
+        preview = { hide_on_startup = true },
+        layout_strategy = 'vertical',
+        layout_config = {
+          vertical = {
+            mirror = true,
+            prompt_position = 'top',
+            width = function(_, cols, _)
+              return math.min( math.floor( standard_w_pct * cols ), w_limit )
+            end,
+            height = function(_, _, rows)
+            return math.floor( rows * standard_h_pct )
+            end,
+            preview_cutoff = 10,
+            preview_height = 0.4,
+          },
+        },
+      }
+      local fullscreen_setup = {
+        borderchars = { '─', '│', '─', '│', '┌', '┐', '┘', '└' },
+        preview = { hide_on_startup = false },
+        layout_strategy = 'flex',
+        layout_config = {
+          flex = { flip_columns = 100 },
+          horizontal = {
+            mirror = false,
+            prompt_position = 'top',
+            width = function(_, cols, _)
+              return math.floor(cols * full_w_pct)
+            end,
+            height = function(_, _, rows)
+              return math.floor(rows * full_h_pct)
+            end,
+            preview_cutoff = 10,
+            preview_width = 0.5,
+          },
+          vertical = {
+            mirror = true,
+            prompt_position = 'top',
+            width = function(_, cols, _)
+              return math.floor(cols * full_w_pct)
+            end,
+            height = function(_, _, rows)
+              return math.floor(rows * full_h_pct)
+            end,
+            preview_cutoff = 10,
+            preview_height = 0.5,
+          },
+        },
+      }
+      ts.setup {
+        defaults = vim.tbl_extend('error', fullscreen_setup, {
+          sorting_strategy = 'ascending',
+          path_display = { "filename_first" },
+          mappings = {
+            n = {
+              ['o'] = require('telescope.actions.layout').toggle_preview,
+              ['<C-c>'] = require('telescope.actions').close,
+            },
+            i = {
+              ['<C-o>'] = require('telescope.actions.layout').toggle_preview,
+            },
+          },
+        }),
+        pickers = {
+          buffers = standard_setup
+        }
+      }
+      ts.load_extension('fzf')
+
       -- To see all Telescope keymaps of current window
       --  - Insert mode: <c-/>
       --  - Normal mode: ?
@@ -427,6 +514,36 @@ require('lazy').setup({
           end,
         },
       }
+
+      -- Ignore certain errors (beyond LSP coverage)
+      vim.lsp.handlers["textDocument/publishDiagnostics"] = function(_, result, ctx, config)
+        local filtered_diagnostics = {}
+
+        local errors_to_ignore = {
+          "Function declaration 'step_impl' is obscured by a declaration of the same name",
+          "Function declaration 'step' is obscured by a declaration of the same name"
+        }
+
+        -- Helper function to check if a message is in the ignore list
+        local function should_ignore(message)
+          for _, error_message in ipairs(errors_to_ignore) do
+            if message == error_message then
+              return true
+            end
+          end
+          return false
+        end
+
+        -- Filter diagnostics
+        for _, diagnostic in ipairs(result.diagnostics) do
+          if not should_ignore(diagnostic.message) then
+            table.insert(filtered_diagnostics, diagnostic)
+          end
+        end
+
+        result.diagnostics = filtered_diagnostics
+        vim.lsp.diagnostic.on_publish_diagnostics(_, result, ctx, config)
+      end
     end,
   },
 
@@ -459,10 +576,6 @@ require('lazy').setup({
         },
       },
       'saadparwaiz1/cmp_luasnip',
-
-      -- Adds other completion capabilities.
-      --  nvim-cmp does not ship with all sources by default. They are split
-      --  into multiple repos for maintenance purposes.
       'hrsh7th/cmp-nvim-lsp',
       'hrsh7th/cmp-path',
     },
@@ -539,7 +652,7 @@ require('lazy').setup({
   },
 
   {
-    'rebelot/kanagawa.nvim',
+    'rebelot/kanagawa.nvim', -- GOAT
     -- 'rose-pine/neovim',
     -- 'folke/tokyonight.nvim',
     priority = 1000, -- Make sure to load this before all the other start plugins.
@@ -584,34 +697,6 @@ require('lazy').setup({
 
       local au_opts = { pattern = 'MiniGitUpdated', callback = format_summary }
       vim.api.nvim_create_autocmd('User', au_opts)
-
-      -- Simple and easy statusline.
-      --  You could remove this setup call if you don't like it,
-      --  and try some other statusline plugin
-      -- local statusline = require 'mini.statusline'
-      -- -- set use_icons to true if you have a Nerd Font
-      -- statusline.setup { use_icons = vim.g.have_nerd_font }
-      -- -- You can configure sections in the statusline by overriding their
-      -- -- default behavior. For example, here we set the section for
-      -- -- cursor location to LINE:COLUMN
-      -- ---@diagnostic disable-next-line: duplicate-set-field
-      -- statusline.section_location = function()
-      --   return '%2l:%-2v'
-      -- end
-      -- ---@diagnostic disable-next-line: duplicate-set-field
-      -- statusline.section_diff = function()
-      --   return ''
-      -- end
-      -- ---@diagnostic disable-next-line: duplicate-set-field
-      -- statusline.section_lsp = function()
-      --   return ''
-      -- end
-      -- ---@diagnostic disable-next-line: duplicate-set-field
-      -- statusline.section_fileinfo = function()
-      --   return ''
-      -- end
-      --
-      --  Check out: https://github.com/echasnovski/mini.nvim
     end,
   },
   { -- Highlight, edit, and navigate code
