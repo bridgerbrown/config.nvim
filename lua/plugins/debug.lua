@@ -16,14 +16,16 @@ return {
       { '<F1>', dap.step_into, desc = 'Debug: Step Into' },
       { '<F2>', dap.step_over, desc = 'Debug: Step Over' },
       { '<F3>', dap.step_out, desc = 'Debug: Step Out' },
-      { '<leader>b', dap.toggle_breakpoint, desc = 'Debug: Toggle Breakpoint' },
+      { '<F6>', dap.terminate, desc = 'Debug: Terminate' },
+      { '<leader>db', dap.toggle_breakpoint, desc = 'Debug: Toggle Breakpoint' },
       {
-        '<leader>B',
+        '<leader>dB',
         function()
           dap.set_breakpoint(vim.fn.input 'Breakpoint condition: ')
         end,
         desc = 'Debug: Set Breakpoint',
       },
+    { '<leader>tl', dap.run_last, desc = 'Debug: Run Last' }
     }
   end,
   config = function()
@@ -46,7 +48,7 @@ return {
       }
     }
 
-    dap.defaults.fallback.terminal_win_cmd = 'belowright 20split new'
+    dap.defaults.fallback.terminal_win_cmd = 'ToggleTerm'
     dap.defaults.fallback.focus_terminal = true
 
     local dap_python = require("dap-python")

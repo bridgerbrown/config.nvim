@@ -23,11 +23,6 @@ return {
       vim.api.nvim_create_autocmd('LspAttach', {
         group = vim.api.nvim_create_augroup('kickstart-lsp-attach', { clear = true }),
         callback = function(event)
-          -- NOTE: Remember that Lua is a real programming language, and as such it is possible
-          -- to define small helper and utility functions so you don't have to repeat yourself.
-          --
-          -- In this case, we create a function that lets us more easily define mappings specific
-          -- for LSP related items. It sets the mode, buffer and description for us each time.
           local map = function(keys, func, desc, mode)
             mode = mode or 'n'
             vim.keymap.set(mode, keys, func, { buffer = event.buf, desc = 'LSP: ' .. desc })
@@ -66,8 +61,7 @@ return {
           -- or a suggestion from your LSP for this to activate.
           map('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction', { 'n', 'x' })
 
-          -- WARN: This is not Goto Definition, this is Goto Declaration.
-          --  For example, in C this would take you to the header.
+          -- Go to declaration (not definition)
           map('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
 
           -- The following two autocommands are used to highlight references of the
@@ -122,16 +116,20 @@ return {
       local servers = {
         basedpyright = {
           enabled = true,
+          capabilities = capabilities,
           settings = {
             venv =  vim.fn.getcwd() .. '/venv/bin/python',
             basedpyright = {
               analysis = {
-                typeCheckingMode = "off"
+                typeCheckingMode = "basic",
+                diagnosticMode = "openFilesOnly",
+                autoSearchPaths = true,
+                useLibraryCodeForTypes = true,
+                autoImportCompletions = true,
               }
             }
           }
         },
-        ts_ls = {},
         lua_ls = {
           settings = {
             Lua = {
@@ -142,11 +140,11 @@ return {
           },
         },
         clangd = {},
+        -- cucumber_language_server = {},
       }
 
       local lspconfig = require("lspconfig")
 
-      -- Clangd
       lspconfig.clangd.setup({
         capabilities = capabilities,
         cmd = { "/usr/bin/clangd" },
@@ -163,6 +161,8 @@ return {
         single_file_support = true,
       })
 
+      -- lspconfig.cucumber_language_server.setup{}
+
       -- Ensure the servers and tools above are installed
       --  To check the current status of installed tools and/or manually install
       --  other tools, you can run
@@ -174,6 +174,7 @@ return {
         'debugpy', -- Python debugger
         'basedpyright', -- Python LSP
         'clangd', -- C LSP
+        -- 'cucumber-language-server' -- Gherkin testing
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
@@ -181,6 +182,8 @@ return {
         ensure_installed = {
           'basedpyright',
           'clangd',
+          'lua_ls',
+          -- 'cucumber_language_server'
         },
         handlers = {
           function(server_name)
@@ -199,8 +202,8 @@ return {
         local filtered_diagnostics = {}
 
         local errors_to_ignore = {
-          "Function declaration 'step_impl' is obscured by a declaration of the same name",
-          "Function declaration 'step' is obscured by a declaration of the same name"
+          'Function declaration "step_impl" is obscured by a declaration of the same name',
+          'Function declaration "step" is obscured by a declaration of the same name'
         }
 
         -- Helper function to check if a message is in the ignore list

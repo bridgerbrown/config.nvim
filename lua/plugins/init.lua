@@ -1,17 +1,7 @@
 return {
-  'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
-  { -- Adds git related signs to the gutter, as well as utilities for managing changes
-    'lewis6991/gitsigns.nvim',
-    opts = {
-      signs = {
-        add = { text = '+' },
-        change = { text = '~' },
-        delete = { text = '_' },
-        topdelete = { text = '‾' },
-        changedelete = { text = '~' },
-      },
-    },
-  },
+  -- Detect tabstop and shiftwidth automatically
+  { 'tpope/vim-sleuth' },
+
   -- Hotkey buffers
   {
     "theprimeagen/harpoon",
@@ -33,6 +23,7 @@ return {
       vim.keymap.set("n", "<leader><C-s>", function() harpoon:list():replace_at(4) end)
     end,
   },
+
   -- File explorer
   {
   'stevearc/oil.nvim',
@@ -51,17 +42,40 @@ return {
     vim.keymap.set("n", "-", "<CMD>Oil<CR>", { desc = "Open parent directory" })
   end
   },
+
   -- Commenting
   {
     'numToStr/Comment.nvim',
     opts = {},
     config = function()
       require("Comment").setup()
+
+      -- cucumber .feature files commenting
+      vim.api.nvim_create_autocmd("FileType", {
+        pattern = "cucumber",
+        callback = function()
+          vim.bo.commentstring = "# %s"
+        end,
+      })
     end,
   },
+
+  -- Git related signs to the gutter
   {
-    "tpope/vim-fugitive", -- Git in Vim commands
+    'lewis6991/gitsigns.nvim',
+    opts = {
+      signs = {
+        add = { text = '+' },
+        change = { text = '~' },
+        delete = { text = '_' },
+        topdelete = { text = '‾' },
+        changedelete = { text = '~' },
+      },
+    },
   },
+  -- Git in Vim commands
+  { "tpope/vim-fugitive", },
+
   -- Nice error lists
   {
     "folke/trouble.nvim",
@@ -75,59 +89,39 @@ return {
       },
     },
   },
+
+  -- Toggling a consistent internal term
+  -- (not set on this. mainly for debug window.)
   {
-    "tjdevries/express_line.nvim",
-    dependencies = "nvim-lua/plenary.nvim",
+    "akinsho/toggleterm.nvim",
+    version = '*',
     config = function()
-      local generator = function()
-        local builtin = require "el.builtin"
-        local extensions = require "el.extensions"
-        local subscribe = require "el.subscribe"
-        local sections = require "el.sections"
-
-        vim.opt.laststatus = 3
-
-        local segments = {}
-        table.insert(segments, extensions.mode)
-        table.insert(segments, " ")
-        table.insert(
-          segments,
-          subscribe.buf_autocmd("el-git-branch", "BufEnter", function(win, buf)
-            local branch = extensions.git_branch(win, buf)
-            if branch then
-              return branch
-            end
-          end)
-        )
-        table.insert(segments, function()
-          local task_count = #require("misery.scheduler").tasks
-          if task_count == 0 then
-            return ""
-          else
-            return string.format(" (Queued Events: %d)", task_count)
-          end
-        end)
-        table.insert(segments, sections.split)
-        table.insert(segments, "%f")
-        table.insert(segments, sections.split)
-        table.insert(segments, builtin.filetype)
-        table.insert(segments, "[")
-        table.insert(segments, builtin.line_with_width(3))
-        table.insert(segments, ":")
-        table.insert(segments, builtin.column_with_width(2))
-        table.insert(segments, "]")
-
-        return segments
+      local toggleterm = require("toggleterm")
+      toggleterm.setup({})
+      vim.keymap.set("n", "<A-t>", ":ToggleTerm<CR>")
+      function _G.set_terminal_keymaps()
+        local opts = {buffer = 0}
+        vim.keymap.set('t', '<esc>', [[<C-\><C-n>]], opts)
+        vim.keymap.set('t', 'jk', [[<C-\><C-n>]], opts)
+        vim.keymap.set('t', '<C-h>', [[<Cmd>wincmd h<CR>]], opts)
+        vim.keymap.set('t', '<C-j>', [[<Cmd>wincmd j<CR>]], opts)
+        vim.keymap.set('t', '<C-k>', [[<Cmd>wincmd k<CR>]], opts)
+        vim.keymap.set('t', '<C-l>', [[<Cmd>wincmd l<CR>]], opts)
+        vim.keymap.set('t', '<C-w>', [[<C-\><C-n><C-w>]], opts)
       end
-      -- And then when you're all done, just call
-      require('el').setup { generator = generator }
     end
   },
-  { "avanzzzi/behave.vim",
-    config = function()
-      vim.keymap.set("v", "<leader>bs", ":call behave#goto_step_definition()<CR>")
-    end
+
+  -- Behave testing finding steps
+  {
+  "avanzzzi/behave.vim",
+  config = function()
+    vim.api.nvim_create_autocmd("FileType", {
+      pattern = "cucumber", -- Only affects .feature files
+      callback = function()
+        vim.keymap.set("v", "<leader>bs", ":call behave#goto_step_definition()<CR>", { buffer = true })
+      end,
+    })
+  end,
   },
-  -- Highlight todo, notes, etc in comments
-  { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
 }
