@@ -14,6 +14,8 @@ return {
 
       -- Allows extra capabilities provided by nvim-cmp
       'hrsh7th/cmp-nvim-lsp',
+      -- c clangd
+      'p00f/clangd_extensions.nvim',
     },
     config = function()
       --  This function gets run when an LSP attaches to a particular buffer.
@@ -145,9 +147,16 @@ return {
 
       local lspconfig = require("lspconfig")
 
+      -- Clangd
+      local clangd_ext = require("clangd_extensions")
       lspconfig.clangd.setup({
         capabilities = capabilities,
-        cmd = { "/usr/bin/clangd" },
+        cmd = {
+          "/usr/bin/clangd",
+          "--completion-style=detailed",
+          "--all-scopes-completion",
+          "--header-insertion=never"
+        },
         filetypes = { "c", "cpp", "objc", "objcpp", "cuda", "proto" },
         root_dir = lspconfig.util.root_pattern(
           '.clangd'
@@ -159,6 +168,22 @@ return {
           ,'.git'
           ),
         single_file_support = true,
+        on_attach = function(client, bufnr)
+          -- Enable clangd extensions and inlay hints
+          clangd_ext.inlay_hints.setup_autocmd() -- Automatically update inlay hints
+          clangd_ext.inlay_hints.set_inlay_hints() -- Set initial inlay hints
+
+          -- Additional key mappings and LSP configuration (optional)
+          local map = function(keys, func, desc)
+            vim.keymap.set('n', keys, func, { buffer = bufnr, desc = 'LSP: ' .. desc })
+          end
+
+          map('<leader>rn', vim.lsp.buf.rename, '[R]e[n]ame')
+          map('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction')
+          map('<leader>th', function()
+            vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = bufnr })
+          end, '[T]oggle Inlay [H]ints')
+        end,
       })
 
       -- lspconfig.cucumber_language_server.setup{}
