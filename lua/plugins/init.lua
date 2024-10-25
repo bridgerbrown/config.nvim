@@ -97,7 +97,11 @@ return {
     version = '*',
     config = function()
       local toggleterm = require("toggleterm")
-      toggleterm.setup({})
+      toggleterm.setup({
+        size = 18,
+        shade_terminals = true,
+      })
+
       vim.keymap.set("n", "<A-t>", ":ToggleTerm<CR>")
       function _G.set_terminal_keymaps()
         local opts = {buffer = 0}
@@ -114,7 +118,8 @@ return {
 
   -- Behave testing finding steps
   {
-  "avanzzzi/behave.vim",
+  -- "avanzzzi/behave.vim",
+  "bridgerbrown/behave.vim",
   config = function()
     vim.api.nvim_create_autocmd("FileType", {
       pattern = "cucumber", -- Only affects .feature files

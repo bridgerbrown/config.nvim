@@ -25,11 +25,12 @@ return {
         end,
         desc = 'Debug: Set Breakpoint',
       },
-    { '<leader>tl', dap.run_last, desc = 'Debug: Run Last' }
+      { '<leader>tl', dap.run_last, desc = 'Debug: Run Last' },
     }
   end,
   config = function()
     local dap = require 'dap'
+    vim.fn.sign_define('DapBreakpoint', {text='🛑', texthl='', linehl='', numhl=''})
 
     require('mason-nvim-dap').setup {
       automatic_installation = true,

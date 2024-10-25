@@ -39,14 +39,7 @@ return {
         table.insert(segments, "%f") -- Filename
         table.insert(segments, sections.split)
         table.insert(segments, builtin.filetype) -- Filetype
-
-        -- Total line count in buffer
-        table.insert(segments, "(")
-        table.insert(segments, function()
-          local total_lines = vim.api.nvim_buf_line_count(0)
-          return string.format("%d", total_lines)
-        end)
-        table.insert(segments, ")")
+        table.insert(segments, " ")
 
         -- line:column count
         table.insert(segments, "[")
@@ -55,6 +48,13 @@ return {
         table.insert(segments, builtin.column_with_width(2))
         table.insert(segments, "]")
 
+        -- Total line count in buffer
+        table.insert(segments, "(")
+        table.insert(segments, function()
+          local total_lines = vim.api.nvim_buf_line_count(0)
+          return string.format("%d", total_lines)
+        end)
+        table.insert(segments, ")")
         return segments
       end
       -- And then when you're all done, just call

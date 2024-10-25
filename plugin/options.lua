@@ -27,3 +27,5 @@ vim.opt.cursorline = true
 vim.opt.scrolloff = 8 -- Minimal number of screen lines to keep above and below the cursor.
 vim.opt.wrap = false
 vim.cmd [[let &stc = '%s%3l %=%#Normal# ']]  -- Adds a space between status col and buffer text
+
+vim.opt.iskeyword:remove("_") -- treat underscores as not parts of words, easier traversing in python

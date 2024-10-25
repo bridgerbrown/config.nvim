@@ -14,6 +14,13 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
 end ---@diagnostic disable-next-line: undefined-field
 vim.opt.rtp:prepend(lazypath)
 
+function ReloadColorscheme()
+  local current = vim.g.colors_name
+  if current then
+    vim.cmd('colorscheme ' .. current)
+  end
+end
+
 require('lazy').setup({
   {
     'folke/lazydev.nvim',
@@ -26,7 +33,6 @@ require('lazy').setup({
     },
   },
   { 'Bilal2453/luvit-meta', lazy = true },
-
   { import = 'plugins' },
 }, {
   ui = {
