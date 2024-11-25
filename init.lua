@@ -38,6 +38,7 @@ require('lazy').setup({
   ui = {
     icons = vim.g.have_nerd_font and {},
   },
+  change_detection = { enabled = false }
 })
 
 -- The line beneath this is called `modeline`. See `:help modeline`

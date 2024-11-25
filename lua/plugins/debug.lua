@@ -30,7 +30,9 @@ return {
   end,
   config = function()
     local dap = require 'dap'
-    vim.fn.sign_define('DapBreakpoint', {text='🛑', texthl='', linehl='', numhl=''})
+      local toggleterm = require('toggleterm')
+    vim.fn.sign_define('DapBreakpoint', {text='🔴', texthl='', linehl='', numhl=''})
+    vim.fn.sign_define('DapStopped', {text='⭕', texthl='', linehl='Visual', numhl=''})
 
     require('mason-nvim-dap').setup {
       automatic_installation = true,
@@ -60,6 +62,10 @@ return {
     -- Custom test runner for Behave
     test_runners.behave = function(classnames, methodname)
       local args = {}
+
+      if not toggleterm.get(1) then
+        vim.cmd("ToggleTerm")
+      end
 
       -- Add the feature file path
       local feature_file = "features/" .. classnames[1]

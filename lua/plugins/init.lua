@@ -98,7 +98,7 @@ return {
     config = function()
       local toggleterm = require("toggleterm")
       toggleterm.setup({
-        size = 18,
+        size = 20,
         shade_terminals = true,
       })
 
@@ -124,9 +124,41 @@ return {
     vim.api.nvim_create_autocmd("FileType", {
       pattern = "cucumber", -- Only affects .feature files
       callback = function()
-        vim.keymap.set("v", "<leader>bs", ":call behave#goto_step_definition()<CR>", { buffer = true })
+        vim.keymap.set("v", "<leader>b", ":call behave#goto_step_definition()<CR>", { buffer = true })
       end,
     })
   end,
   },
+
+  -- Smoother Scrolling (just a lil)
+  {
+    "karb94/neoscroll.nvim",
+    config = function()
+      require('neoscroll').setup({
+        easing = "quadratic"
+      })
+        local neoscroll = require('neoscroll')
+        local keymap = {
+          ["<C-u>"] = function() neoscroll.ctrl_u({ duration = 60 }) end;
+          ["<C-d>"] = function() neoscroll.ctrl_d({ duration = 60 }) end;
+          ["<C-b>"] = function() neoscroll.ctrl_b({ duration = 60 }) end;
+          ["<C-f>"] = function() neoscroll.ctrl_f({ duration = 60 }) end;
+          ["<C-y>"] = function() neoscroll.scroll(-0.1, { move_cursor=false; duration = 50 }) end;
+          ["zt"]    = function() neoscroll.zt({ half_win_duration = 20 }) end;
+          ["zz"]    = function() neoscroll.zz({ half_win_duration = 20 }) end;
+          ["zb"]    = function() neoscroll.zb({ half_win_duration = 20 }) end;
+        }
+        local modes = { 'n', 'v', 'x' }
+        for key, func in pairs(keymap) do
+            vim.keymap.set(modes, key, func)
+        end
+    end
+  },
+
+  -- Visual indicator for nvim marks
+  {
+    "chentoast/marks.nvim",
+    events = "VeryLazy",
+    opts = {}
+  }
 }

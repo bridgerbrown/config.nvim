@@ -14,6 +14,8 @@ return {
 
       -- Allows extra capabilities provided by nvim-cmp
       'hrsh7th/cmp-nvim-lsp',
+
+      -- Language Specific:
       -- c clangd
       'p00f/clangd_extensions.nvim',
     },

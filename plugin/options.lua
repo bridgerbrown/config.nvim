@@ -29,3 +29,14 @@ vim.opt.wrap = false
 vim.cmd [[let &stc = '%s%3l %=%#Normal# ']]  -- Adds a space between status col and buffer text
 
 vim.opt.iskeyword:remove("_") -- treat underscores as not parts of words, easier traversing in python
+
+-- Set custom fill characters for vertical splits and folds
+vim.opt.fillchars = {
+    vert = "█",
+    horiz = "█",
+    fold = "·",
+}
+
+-- Set highlight for split borders
+vim.api.nvim_set_hl(0, "VertSplit", { fg = "#16161d" })
+vim.api.nvim_set_hl(0, "WinSeparator", { fg = "#16161d" })
