@@ -9,14 +9,12 @@ return {
       'WhoIsSethDaniel/mason-tool-installer.nvim',
 
       -- Useful status updates for LSP.
-      -- NOTE: `opts = {}` is the same as calling `require('fidget').setup({})`
       { 'j-hui/fidget.nvim', opts = {} },
 
       -- Allows extra capabilities provided by nvim-cmp
       'hrsh7th/cmp-nvim-lsp',
 
       -- Language Specific:
-      -- c clangd
       'p00f/clangd_extensions.nvim',
     },
     config = function()
@@ -145,11 +143,12 @@ return {
         },
         clangd = {},
         -- cucumber_language_server = {},
+        omnisharp = {},
       }
 
       local lspconfig = require("lspconfig")
 
-      -- Clangd
+      -- C
       local clangd_ext = require("clangd_extensions")
       lspconfig.clangd.setup({
         capabilities = capabilities,
@@ -188,6 +187,17 @@ return {
         end,
       })
 
+      -- C#
+      lspconfig.omnisharp.setup {
+        cmd = { "dotnet", "omnisharp/libexec/OmniSharp.dll" },
+        capabilities = capabilities,
+				enable_roslyn_analysers = true,
+				enable_import_completion = true,
+				organize_imports_on_format = true,
+				enable_decompilation_support = true,
+				filetypes = { 'cs', 'vb', 'csproj', 'sln', 'slnx', 'props', 'csx', 'targets' }
+      }
+
       -- lspconfig.cucumber_language_server.setup{}
 
       -- Ensure the servers and tools above are installed
@@ -197,11 +207,13 @@ return {
       require('mason').setup()
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
-        'stylua', -- Used to format Lua code
+        'stylua', -- Lua language
+        'basedpyright', -- Python language 
+        'clangd', -- C language
+        'omnisharp', -- C# language
+
+        -- 'cucumber-language-server' -- Gherkin testing framework
         'debugpy', -- Python debugger
-        'basedpyright', -- Python LSP
-        'clangd', -- C LSP
-        -- 'cucumber-language-server' -- Gherkin testing
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
@@ -210,6 +222,8 @@ return {
           'basedpyright',
           'clangd',
           'lua_ls',
+          'omnisharp',
+          'cmake',
           -- 'cucumber_language_server'
         },
         handlers = {

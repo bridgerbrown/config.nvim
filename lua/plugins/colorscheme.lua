@@ -9,8 +9,23 @@ return {
       -- vim.cmd.colorscheme 'rose-pine'
       -- vim.cmd.colorscheme 'tokyonight-night'
 
-      -- You can configure highlights by doing something like:
-      vim.cmd.hi 'Comment gui=none'
+      -- Dark bg past 3pm
+      -- local current_hour = tonumber(os.date("%H"))
+      -- local bg_color = "#000000"
+      -- if current_hour >= 15 then
+      --   vim.cmd.hi 'Comment gui=none'
+      --   vim.cmd("highlight Normal guibg=" .. bg_color)
+      --   vim.cmd("highlight NormalNC guibg=" .. bg_color)
+      --   vim.cmd("highlight SignColumn guibg=NONE")
+      --   vim.cmd("highlight LineNr guibg=" .. bg_color)
+      --   vim.cmd("highlight CursorLineNr guibg=" .. bg_color)
+      --   vim.cmd("highlight CursorLine guibg=#16161d")
+      --   vim.cmd("highlight GitSignsAdd guibg=NONE")
+      --   vim.cmd("highlight GitSignsChange guibg=NONE")
+      --   vim.cmd("highlight GitSignsDelete guibg=NONE")
+      --   vim.cmd("highlight GitSignsChangeDelete guibg=NONE")
+      --   vim.cmd("highlight GitSignsTopDelete guibg=NONE")
+      -- end
     end,
   },
 }
