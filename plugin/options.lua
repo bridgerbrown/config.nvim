@@ -1,4 +1,5 @@
 vim.opt.number = true
+
 vim.opt.relativenumber = false
 vim.opt.mouse = 'a'
 vim.opt.showmode = false
@@ -17,7 +18,7 @@ vim.opt.ignorecase = true
 vim.opt.smartcase = true
 vim.opt.signcolumn = 'yes'
 vim.opt.updatetime = 250 -- Decrease update time
-vim.opt.timeoutlen = 300 -- Decrease mapped sequence wait time
+vim.opt.timeoutlen = 500 -- Decrease mapped sequence wait time
 vim.opt.splitright = true
 vim.opt.splitbelow = true
 vim.opt.list = true
@@ -40,3 +41,20 @@ vim.opt.fillchars = {
 -- Set highlight for split borders
 vim.api.nvim_set_hl(0, "VertSplit", { fg = "#16161d" })
 vim.api.nvim_set_hl(0, "WinSeparator", { fg = "#16161d" })
+
+local function set_tab_size(tabstop, shiftwidth, expandtab)
+  vim.opt_local.tabstop = tabstop
+  vim.opt_local.shiftwidth = shiftwidth
+  vim.opt_local.expandtab = expandtab
+end
+
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "c",
+  callback = function() set_tab_size(4, 4, true) end,
+})
+
+-- auto equal width resize splits on window resize
+vim.api.nvim_create_autocmd("VimResized", {
+  pattern = "*",
+  command = "wincmd =",
+})
