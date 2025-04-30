@@ -91,8 +91,75 @@ return {
     },
   },
 
-  -- Toggling a consistent internal term
-  -- (not set on this. mainly for debug window.)
+  -- Behave testing finding steps
+  {
+  -- "avanzzzi/behave.vim",
+  "bridgerbrown/behave.vim",
+  config = function()
+    vim.api.nvim_create_autocmd("FileType", {
+      pattern = "cucumber", -- Only affects .feature files
+      callback = function()
+        vim.keymap.set("v", "<leader>b", ":call behave#goto_step_definition()<CR>", { buffer = true })
+      end,
+    })
+  end,
+  },
+
+  -- Visual indicator for nvim marks
+  {
+    "chentoast/marks.nvim",
+    events = "VeryLazy",
+    opts = {}
+  },
+
+  -- Smoother Scrolling (just a lil)
+  -- {
+  --   "karb94/neoscroll.nvim",
+  --   config = function()
+  --     require('neoscroll').setup({
+  --       easing = "quadratic",
+  --       mappings = {                 -- Keys to be mapped to their corresponding default scrolling animation
+  --         '<C-u>', '<C-d>',
+  --         '<C-b>', '<C-f>',
+  --         '<C-y>',
+  --         'zt', 'zz', 'zb',
+  --       },
+  --     })
+  --       local neoscroll = require('neoscroll')
+  --       local keymap = {
+  --         ["<C-u>"] = function() neoscroll.ctrl_u({ duration = 60 }) end;
+  --         ["<C-d>"] = function() neoscroll.ctrl_d({ duration = 60 }) end;
+  --         ["<C-b>"] = function() neoscroll.ctrl_b({ duration = 60 }) end;
+  --         ["<C-f>"] = function() neoscroll.ctrl_f({ duration = 60 }) end;
+  --         ["<C-y>"] = function() neoscroll.scroll(-0.1, { move_cursor=false; duration = 50 }) end;
+  --         -- ["zt"]    = function() neoscroll.zt({ half_win_duration = 20 }) end;
+  --         -- ["zz"]    = function() neoscroll.zz({ half_win_duration = 20 }) end;
+  --         -- ["zb"]    = function() neoscroll.zb({ half_win_duration = 20 }) end;
+  --       }
+  --       local modes = { 'n', 'v', 'x' }
+  --       for key, func in pairs(keymap) do
+  --           vim.keymap.set(modes, key, func)
+  --       end
+  --   end
+  -- },
+
+  -- Floating Terminal
+  {
+    "numToStr/FTerm.nvim",
+    config = function()
+      require'FTerm'.setup({
+          border = 'double',
+          dimensions  = {
+              height = 0.9,
+              width = 0.9,
+          },
+      })
+
+      -- Example keybindings
+      vim.keymap.set('n', '<A-i>', '<CMD>lua require("FTerm").toggle()<CR>')
+      vim.keymap.set('t', '<A-i>', '<C-\\><C-n><CMD>lua require("FTerm").toggle()<CR>')
+    end
+  },
   {
     "akinsho/toggleterm.nvim",
     version = '*',
@@ -117,55 +184,13 @@ return {
     end
   },
 
-  -- Behave testing finding steps
+  -- Indent lines
   {
-  -- "avanzzzi/behave.vim",
-  "bridgerbrown/behave.vim",
-  config = function()
-    vim.api.nvim_create_autocmd("FileType", {
-      pattern = "cucumber", -- Only affects .feature files
-      callback = function()
-        vim.keymap.set("v", "<leader>b", ":call behave#goto_step_definition()<CR>", { buffer = true })
-      end,
-    })
-  end,
-  },
-
-  -- Visual indicator for nvim marks
-  {
-    "chentoast/marks.nvim",
-    events = "VeryLazy",
-    opts = {}
-  },
-
-  -- Smoother Scrolling (just a lil)
-  {
-    "karb94/neoscroll.nvim",
+    "nvimdev/indentmini.nvim",
     config = function()
-      require('neoscroll').setup({
-        easing = "quadratic",
-        mappings = {                 -- Keys to be mapped to their corresponding default scrolling animation
-          '<C-u>', '<C-d>',
-          '<C-b>', '<C-f>',
-          '<C-y>',
-          'zt', 'zz', 'zb',
-        },
-      })
-        local neoscroll = require('neoscroll')
-        local keymap = {
-          ["<C-u>"] = function() neoscroll.ctrl_u({ duration = 60 }) end;
-          ["<C-d>"] = function() neoscroll.ctrl_d({ duration = 60 }) end;
-          ["<C-b>"] = function() neoscroll.ctrl_b({ duration = 60 }) end;
-          ["<C-f>"] = function() neoscroll.ctrl_f({ duration = 60 }) end;
-          ["<C-y>"] = function() neoscroll.scroll(-0.1, { move_cursor=false; duration = 50 }) end;
-          -- ["zt"]    = function() neoscroll.zt({ half_win_duration = 20 }) end;
-          -- ["zz"]    = function() neoscroll.zz({ half_win_duration = 20 }) end;
-          -- ["zb"]    = function() neoscroll.zb({ half_win_duration = 20 }) end;
-        }
-        local modes = { 'n', 'v', 'x' }
-        for key, func in pairs(keymap) do
-            vim.keymap.set(modes, key, func)
-        end
-    end
+      require("indentmini").setup()
+      vim.cmd.highlight('IndentLine guifg=#2a2938')
+      vim.cmd.highlight('IndentLineCurrent guifg=#4f4f69')
+    end,
   },
 }

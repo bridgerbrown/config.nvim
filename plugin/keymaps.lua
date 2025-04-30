@@ -9,6 +9,7 @@ set('n', '<leader>bp', ':bprev<CR>', { desc = 'Prev buffer'})
 
 -- Diagnostic keymaps
 set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
+set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Open diagnostic [E]rror floating window' })
 
 -- Exit terminal mode in the builtin terminal
 set('t', '<Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
@@ -37,3 +38,16 @@ set("n", "<leader>wx", ":close<CR>") -- close current split window
 -- set("n", "<A-.>", "<C-w>5>", { desc = 'Window: expand by 5 cols to the right'})
 -- set("n", "<A-t>", "<C-W>+", { desc = 'Window: increase height by one line'})
 -- set("n", "<A-s>", "<C-W>-", { desc = 'Window: decrease height by one line'})
+
+-- Tabs
+set('n', '<leader>tn', ':tabnew<CR>', { desc = 'New tab' })
+set('n', '<leader>tc', ':tabclose<CR>', { desc = 'Close current tab' })
+set('n', '<leader>to', ':tabonly<CR>', { desc = 'Close all other tabs' })
+set('n', '<leader>tl', ':tabnext<CR>', { desc = 'Next tab' })
+set('n', '<leader>th', ':tabprevious<CR>', { desc = 'Previous tab' })
+set('n', '<leader>t1', ':tabnext 1<CR>', { desc = 'Go to tab 1' })
+set('n', '<leader>t2', ':tabnext 2<CR>', { desc = 'Go to tab 2' })
+set('n', '<leader>t3', ':tabnext 3<CR>', { desc = 'Go to tab 3' })
+set('n', '<leader>t4', ':tabnext 4<CR>', { desc = 'Go to tab 4' })
+set('n', '<leader>t5', ':tabnext 5<CR>', { desc = 'Go to tab 5' })
+

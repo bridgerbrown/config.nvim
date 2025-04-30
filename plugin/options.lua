@@ -25,7 +25,7 @@ vim.opt.list = true
 vim.opt.listchars = { tab = '  ', trail = ' ', nbsp = ' ' }
 vim.opt.inccommand = 'split' -- Preview substitutions live, as you type!
 vim.opt.cursorline = true
-vim.opt.scrolloff = 8 -- Minimal number of screen lines to keep above and below the cursor.
+vim.opt.scrolloff = 12 -- Minimal number of screen lines to keep above and below the cursor.
 vim.opt.wrap = false
 vim.cmd [[let &stc = '%s%3l %=%#Normal# ']]  -- Adds a space between status col and buffer text
 

@@ -1,3 +1,5 @@
+-- :Mason for graphical status window
+
 return {
   {
     -- Main LSP Configuration
@@ -15,7 +17,7 @@ return {
       'hrsh7th/cmp-nvim-lsp',
 
       -- Language Specific:
-      'p00f/clangd_extensions.nvim',
+      --'p00f/clangd_extensions.nvim',
     },
     config = function()
       --  This function gets run when an LSP attaches to a particular buffer.
@@ -49,7 +51,7 @@ return {
 
           -- Fuzzy find all the symbols in your current document.
           --  Symbols are things like variables, functions, types, etc.
-          map('<leader>ds', require('telescope.builtin').lsp_document_symbols, '[D]ocument [S]ymbols')
+          map('<leader>gs', require('telescope.builtin').lsp_document_symbols, '[D]ocument [S]ymbols')
 
           -- Fuzzy find all the symbols in your current workspace.
           --  Similar to document symbols, except searches over your entire project.
@@ -115,12 +117,44 @@ return {
       capabilities = vim.tbl_deep_extend('force', capabilities, require('cmp_nvim_lsp').default_capabilities())
 
       -- Enable the following language servers
+
+      local function get_python_path()
+        local cwd = vim.fn.getcwd()
+
+        -- Check local virtual environments first
+        for _, name in ipairs({ ".venv", "venv", ".env", "env" }) do
+          local path = cwd .. "/" .. name .. "/bin/python"
+          if vim.fn.executable(path) == 1 then
+            return path
+          end
+        end
+
+        -- Try Poetry environment
+        local poetry_env_path = vim.fn.trim(vim.fn.system("poetry env info -p 2>/dev/null"))
+        if vim.v.shell_error == 0 then
+          local poetry_python = poetry_env_path .. "/bin/python"
+          if vim.fn.executable(poetry_python) == 1 then
+            return poetry_python
+          end
+        end
+
+        -- Fallback to system Python
+        return vim.fn.exepath("python3") or "python3"
+      end
+
+      vim.diagnostic.config({
+        virtual_text = true,
+        signs = true,
+        underline = true,
+        update_in_insert = true,
+      })
+
       local servers = {
         basedpyright = {
           enabled = true,
           capabilities = capabilities,
           settings = {
-            venv =  vim.fn.getcwd() .. '/venv/bin/python',
+            pythonPath = get_python_path(),
             basedpyright = {
               analysis = {
                 typeCheckingMode = "basic",
@@ -141,62 +175,59 @@ return {
             },
           },
         },
-        clangd = {},
+        -- clangd = {},
         -- cucumber_language_server = {},
-        omnisharp = {},
+        -- omnisharp = {}, -- C#
       }
 
-      local lspconfig = require("lspconfig")
-
-      -- C
-      local clangd_ext = require("clangd_extensions")
-      lspconfig.clangd.setup({
-        capabilities = capabilities,
-        cmd = {
-          "/usr/bin/clangd",
-          "--completion-style=detailed",
-          "--all-scopes-completion",
-          "--header-insertion=never"
-        },
-        filetypes = { "c", "cpp", "objc", "objcpp", "cuda", "proto" },
-        root_dir = lspconfig.util.root_pattern(
-          '.clangd'
-          ,'.clang-tidy'
-          ,'.clang-format'
-          ,'compile_commands.json'
-          ,'compile_flags.txt'
-          ,'configure.ac'
-          ,'.git'
-          ),
-        single_file_support = true,
-        on_attach = function(client, bufnr)
-          -- Enable clangd extensions and inlay hints
-          clangd_ext.inlay_hints.setup_autocmd() -- Automatically update inlay hints
-          clangd_ext.inlay_hints.set_inlay_hints() -- Set initial inlay hints
-
-          -- Additional key mappings and LSP configuration (optional)
-          local map = function(keys, func, desc)
-            vim.keymap.set('n', keys, func, { buffer = bufnr, desc = 'LSP: ' .. desc })
-          end
-
-          map('<leader>rn', vim.lsp.buf.rename, '[R]e[n]ame')
-          map('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction')
-          map('<leader>th', function()
-            vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = bufnr })
-          end, '[T]oggle Inlay [H]ints')
-        end,
-      })
-
-      -- C#
-      lspconfig.omnisharp.setup {
-        cmd = { "dotnet", "omnisharp/libexec/OmniSharp.dll" },
-        capabilities = capabilities,
-				enable_roslyn_analysers = true,
-				enable_import_completion = true,
-				organize_imports_on_format = true,
-				enable_decompilation_support = true,
-				filetypes = { 'cs', 'vb', 'csproj', 'sln', 'slnx', 'props', 'csx', 'targets' }
-      }
+      -- -- -- C
+      -- local clangd_ext = require("clangd_extensions")
+      -- lspconfig.clangd.setup({
+      --   capabilities = capabilities,
+      --   cmd = {
+      --     "/usr/bin/clangd",
+      --     "--completion-style=detailed",
+      --     "--all-scopes-completion",
+      --     "--header-insertion=never"
+      --   },
+      --   filetypes = { "c", "cpp", "objc", "objcpp", "cuda", "proto" },
+      --   root_dir = lspconfig.util.root_pattern(
+      --     '.clangd'
+      --     ,'.clang-tidy'
+      --     ,'.clang-format'
+      --     ,'compile_commands.json'
+      --     ,'compile_flags.txt'
+      --     ,'configure.ac'
+      --     ,'.git'
+      --     ),
+      --   single_file_support = true,
+      --   on_attach = function(client, bufnr)
+      --     -- Enable clangd extensions and inlay hints
+      --     clangd_ext.inlay_hints.setup_autocmd() -- Automatically update inlay hints
+      --     clangd_ext.inlay_hints.set_inlay_hints() -- Set initial inlay hints
+      --
+      --     -- Additional key mappings and LSP configuration (optional)
+      --     local map = function(keys, func, desc)
+      --       vim.keymap.set('n', keys, func, { buffer = bufnr, desc = 'LSP: ' .. desc })
+      --     end
+      --
+      --     map('<leader>rn', vim.lsp.buf.rename, '[R]e[n]ame')
+      --     map('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction')
+      --     map('<leader>th', function()
+      --       vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = bufnr })
+      --     end, '[T]oggle Inlay [H]ints')
+      --   end,
+      -- })
+      -- -- C#
+      -- lspconfig.omnisharp.setup {
+      --   cmd = { "dotnet", "omnisharp/libexec/OmniSharp.dll" },
+      --   capabilities = capabilities,
+      --                           enable_roslyn_analysers = true,
+      --                           enable_import_completion = true,
+      --                           organize_imports_on_format = true,
+      --                           enable_decompilation_support = true,
+      --                           filetypes = { 'cs', 'vb', 'csproj', 'sln', 'slnx', 'props', 'csx', 'targets' }
+      -- }
 
       -- lspconfig.cucumber_language_server.setup{}
 
@@ -206,26 +237,27 @@ return {
       --    :Mason
       require('mason').setup()
       local ensure_installed = vim.tbl_keys(servers or {})
+
       vim.list_extend(ensure_installed, {
         'stylua', -- Lua language
         'basedpyright', -- Python language 
-        'clangd', -- C language
-        'omnisharp', -- C# language
-
-        -- 'cucumber-language-server' -- Gherkin testing framework
         'debugpy', -- Python debugger
+        -- 'clangd', -- C language
+        -- 'omnisharp', -- C# language
+        -- 'cucumber-language-server' -- Gherkin testing framework
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
       require('mason-lspconfig').setup {
         ensure_installed = {
           'basedpyright',
-          'clangd',
           'lua_ls',
-          'omnisharp',
-          'cmake',
+          -- 'clangd',
+          -- 'omnisharp',
+          -- 'cmake',
           -- 'cucumber_language_server'
         },
+        automatic_installation = true,
         handlers = {
           function(server_name)
             local server = servers[server_name] or {}
@@ -268,5 +300,14 @@ return {
         vim.lsp.diagnostic.on_publish_diagnostics(_, result, ctx, config)
       end
     end,
+
+
+    -- Retool
+    vim.filetype.add({
+      extension = {
+        rsx = "javascriptreact",
+      },
+    })
   },
 }
+
