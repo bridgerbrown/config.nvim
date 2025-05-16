@@ -8,8 +8,8 @@ return {
       ensure_installed = {
         'python',
         'bash',
-        'c',
-        'c_sharp',
+        -- 'c',
+        -- 'c_sharp',
         'diff',
         'html',
         'lua',

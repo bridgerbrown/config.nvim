@@ -4,26 +4,25 @@ return {
   {
     -- Main LSP Configuration
     'neovim/nvim-lspconfig',
+    event = { "BufReadPre", "BufNewFile" },
     dependencies = {
       -- Automatically install LSPs and related tools to stdpath for Neovim
       { 'williamboman/mason.nvim', config = true }, -- NOTE: Must be loaded before dependants
       'williamboman/mason-lspconfig.nvim',
       'WhoIsSethDaniel/mason-tool-installer.nvim',
-
-      -- Useful status updates for LSP.
       { 'j-hui/fidget.nvim', opts = {} },
 
       -- Allows extra capabilities provided by nvim-cmp
       'hrsh7th/cmp-nvim-lsp',
 
       -- Language Specific:
-      --'p00f/clangd_extensions.nvim',
     },
     config = function()
       --  This function gets run when an LSP attaches to a particular buffer.
       --    That is to say, every time a new file is opened that is associated with
       --    an lsp (for example, opening `main.rs` is associated with `rust_analyzer`) this
       --    function will be executed to configure the current buffer
+
       vim.api.nvim_create_autocmd('LspAttach', {
         group = vim.api.nvim_create_augroup('kickstart-lsp-attach', { clear = true }),
         callback = function(event)
@@ -31,31 +30,32 @@ return {
             mode = mode or 'n'
             vim.keymap.set(mode, keys, func, { buffer = event.buf, desc = 'LSP: ' .. desc })
           end
+          local telescope_builtin = require('telescope.builtin')
 
           -- Jump to the definition of the word under your cursor.
           --  This is where a variable was first declared, or where a function is defined, etc.
           --  To jump back, press <C-t>.
-          map('gd', require('telescope.builtin').lsp_definitions, '[G]oto [D]efinition')
+          map('gd', telescope_builtin.lsp_definitions, '[G]oto [D]efinition')
 
           -- Find references for the word under your cursor.
-          map('gr', require('telescope.builtin').lsp_references, '[G]oto [R]eferences')
+          map('gr', telescope_builtin.lsp_references, '[G]oto [R]eferences')
 
           -- Jump to the implementation of the word under your cursor.
           --  Useful when your language has ways of declaring types without an actual implementation.
-          map('gI', require('telescope.builtin').lsp_implementations, '[G]oto [I]mplementation')
+          map('gI', telescope_builtin.lsp_implementations, '[G]oto [I]mplementation')
 
           -- Jump to the type of the word under your cursor.
           --  Useful when you're not sure what type a variable is and you want to see
           --  the definition of its *type*, not where it was *defined*.
-          map('<leader>D', require('telescope.builtin').lsp_type_definitions, 'Type [D]efinition')
+          map('<leader>D', telescope_builtin.lsp_type_definitions, 'Type [D]efinition')
 
           -- Fuzzy find all the symbols in your current document.
           --  Symbols are things like variables, functions, types, etc.
-          map('<leader>gs', require('telescope.builtin').lsp_document_symbols, '[D]ocument [S]ymbols')
+          map('<leader>gs', telescope_builtin.lsp_document_symbols, '[D]ocument [S]ymbols')
 
           -- Fuzzy find all the symbols in your current workspace.
           --  Similar to document symbols, except searches over your entire project.
-          map('<leader>ws', require('telescope.builtin').lsp_dynamic_workspace_symbols, '[W]orkspace [S]ymbols')
+          map('<leader>ws', telescope_builtin.lsp_dynamic_workspace_symbols, '[W]orkspace [S]ymbols')
 
           -- Rename the variable under your cursor.
           --  Most Language Servers support renaming across files, etc.
@@ -118,28 +118,33 @@ return {
 
       -- Enable the following language servers
 
+      local python_path_cache = nil
       local function get_python_path()
+        if python_path_cache then return python_path_cache end
         local cwd = vim.fn.getcwd()
 
-        -- Check local virtual environments first
+        -- check local virtual environments first
         for _, name in ipairs({ ".venv", "venv", ".env", "env" }) do
           local path = cwd .. "/" .. name .. "/bin/python"
           if vim.fn.executable(path) == 1 then
-            return path
+            python_path_cache = path
+            return python_path_cache
           end
         end
 
-        -- Try Poetry environment
+        -- try Poetry environment
         local poetry_env_path = vim.fn.trim(vim.fn.system("poetry env info -p 2>/dev/null"))
-        if vim.v.shell_error == 0 then
+        if vim.v.shell_error == 0 and poetry_env_path ~= "" then
           local poetry_python = poetry_env_path .. "/bin/python"
           if vim.fn.executable(poetry_python) == 1 then
-            return poetry_python
+            python_path_cache = poetry_python
+            return python_path_cache
           end
         end
 
-        -- Fallback to system Python
-        return vim.fn.exepath("python3") or "python3"
+        -- fallback to system Python
+        python_path_cache = vim.fn.exepath("python3") or "python3"
+        return python_path_cache
       end
 
       vim.diagnostic.config({
@@ -172,64 +177,15 @@ return {
               completion = {
                 callSnippet = 'Replace',
               },
+              workspace = {
+                maxPreload = 10000,
+                preloadFileSize = 1000,
+              },
             },
           },
         },
-        -- clangd = {},
-        -- cucumber_language_server = {},
-        -- omnisharp = {}, -- C#
+        sqlls = {},
       }
-
-      -- -- -- C
-      -- local clangd_ext = require("clangd_extensions")
-      -- lspconfig.clangd.setup({
-      --   capabilities = capabilities,
-      --   cmd = {
-      --     "/usr/bin/clangd",
-      --     "--completion-style=detailed",
-      --     "--all-scopes-completion",
-      --     "--header-insertion=never"
-      --   },
-      --   filetypes = { "c", "cpp", "objc", "objcpp", "cuda", "proto" },
-      --   root_dir = lspconfig.util.root_pattern(
-      --     '.clangd'
-      --     ,'.clang-tidy'
-      --     ,'.clang-format'
-      --     ,'compile_commands.json'
-      --     ,'compile_flags.txt'
-      --     ,'configure.ac'
-      --     ,'.git'
-      --     ),
-      --   single_file_support = true,
-      --   on_attach = function(client, bufnr)
-      --     -- Enable clangd extensions and inlay hints
-      --     clangd_ext.inlay_hints.setup_autocmd() -- Automatically update inlay hints
-      --     clangd_ext.inlay_hints.set_inlay_hints() -- Set initial inlay hints
-      --
-      --     -- Additional key mappings and LSP configuration (optional)
-      --     local map = function(keys, func, desc)
-      --       vim.keymap.set('n', keys, func, { buffer = bufnr, desc = 'LSP: ' .. desc })
-      --     end
-      --
-      --     map('<leader>rn', vim.lsp.buf.rename, '[R]e[n]ame')
-      --     map('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction')
-      --     map('<leader>th', function()
-      --       vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = bufnr })
-      --     end, '[T]oggle Inlay [H]ints')
-      --   end,
-      -- })
-      -- -- C#
-      -- lspconfig.omnisharp.setup {
-      --   cmd = { "dotnet", "omnisharp/libexec/OmniSharp.dll" },
-      --   capabilities = capabilities,
-      --                           enable_roslyn_analysers = true,
-      --                           enable_import_completion = true,
-      --                           organize_imports_on_format = true,
-      --                           enable_decompilation_support = true,
-      --                           filetypes = { 'cs', 'vb', 'csproj', 'sln', 'slnx', 'props', 'csx', 'targets' }
-      -- }
-
-      -- lspconfig.cucumber_language_server.setup{}
 
       -- Ensure the servers and tools above are installed
       --  To check the current status of installed tools and/or manually install
@@ -242,9 +198,7 @@ return {
         'stylua', -- Lua language
         'basedpyright', -- Python language 
         'debugpy', -- Python debugger
-        -- 'clangd', -- C language
-        -- 'omnisharp', -- C# language
-        -- 'cucumber-language-server' -- Gherkin testing framework
+        'sqlls'
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
@@ -252,12 +206,10 @@ return {
         ensure_installed = {
           'basedpyright',
           'lua_ls',
-          -- 'clangd',
-          -- 'omnisharp',
-          -- 'cmake',
-          -- 'cucumber_language_server'
+          'sqlls'
         },
         automatic_installation = true,
+        automatic_enable = true,
         handlers = {
           function(server_name)
             local server = servers[server_name] or {}
@@ -300,7 +252,6 @@ return {
         vim.lsp.diagnostic.on_publish_diagnostics(_, result, ctx, config)
       end
     end,
-
 
     -- Retool
     vim.filetype.add({
