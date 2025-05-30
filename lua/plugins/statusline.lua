@@ -1,7 +1,10 @@
 return {
   {
     "tjdevries/express_line.nvim",
-    dependencies = "nvim-lua/plenary.nvim",
+    dependencies = {
+        "nvim-tree/nvim-web-devicons",
+         "nvim-lua/plenary.nvim",
+    },
     config = function()
       local generator = function()
         local builtin = require "el.builtin"
@@ -39,22 +42,45 @@ return {
         table.insert(segments, "%f") -- Filename
         table.insert(segments, sections.split)
         table.insert(segments, builtin.filetype) -- Filetype
-        table.insert(segments, " ")
 
-        -- line:column count
-        table.insert(segments, "[")
-        table.insert(segments, builtin.line_with_width(3))
+
+        -- Line:Column count
+        table.insert(segments, " [L ")
+
+        -- Current line number, padded to 3 characters
+        table.insert(segments, function()
+          return string.format("%3d", vim.fn.line('.'))
+        end)
+
         table.insert(segments, ":")
-        table.insert(segments, builtin.column_with_width(2))
-        table.insert(segments, "]")
 
-        -- Total line count in buffer
-        table.insert(segments, "(")
+        -- Total lines in buffer, padded to 3 characters
         table.insert(segments, function()
           local total_lines = vim.api.nvim_buf_line_count(0)
-          return string.format("%d", total_lines)
+          return string.format("%3d", total_lines)
         end)
-        table.insert(segments, ")")
+
+        table.insert(segments, "] ")
+
+        -- Column section
+        table.insert(segments, "[C ")
+
+        -- Current column, padded to 3 characters
+        table.insert(segments, function()
+          return string.format("%3d", vim.fn.col('.'))
+        end)
+
+        table.insert(segments, ":")
+
+        -- Max column in current line, padded to 3 characters
+        table.insert(segments, function()
+          local line = vim.api.nvim_get_current_line()
+          local max_col = vim.fn.strdisplaywidth(line)
+          return string.format("%3d", max_col)
+        end)
+
+        table.insert(segments, "]")
+
         return segments
       end
       -- And then when you're all done, just call

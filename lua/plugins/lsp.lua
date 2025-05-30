@@ -4,12 +4,12 @@ return {
   {
     -- Main LSP Configuration
     'neovim/nvim-lspconfig',
-    event = { "BufReadPre", "BufNewFile" },
+    -- event = { "BufReadPre", "BufNewFile" }, -- load on file/buffer open
     dependencies = {
       -- Automatically install LSPs and related tools to stdpath for Neovim
       { 'williamboman/mason.nvim', config = true }, -- NOTE: Must be loaded before dependants
-      'williamboman/mason-lspconfig.nvim',
-      'WhoIsSethDaniel/mason-tool-installer.nvim',
+      { 'williamboman/mason-lspconfig.nvim', version = '1.32.0'},
+      {'WhoIsSethDaniel/mason-tool-installer.nvim', commit = '1255518cb067e038a4755f5cb3e980f79b6ab89c'},
       { 'j-hui/fidget.nvim', opts = {} },
 
       -- Allows extra capabilities provided by nvim-cmp
@@ -117,34 +117,28 @@ return {
       capabilities = vim.tbl_deep_extend('force', capabilities, require('cmp_nvim_lsp').default_capabilities())
 
       -- Enable the following language servers
-
-      local python_path_cache = nil
       local function get_python_path()
-        if python_path_cache then return python_path_cache end
         local cwd = vim.fn.getcwd()
 
-        -- check local virtual environments first
+        -- Check local virtual environments first
         for _, name in ipairs({ ".venv", "venv", ".env", "env" }) do
           local path = cwd .. "/" .. name .. "/bin/python"
           if vim.fn.executable(path) == 1 then
-            python_path_cache = path
-            return python_path_cache
+            return path
           end
         end
 
-        -- try Poetry environment
+        -- Try Poetry environment
         local poetry_env_path = vim.fn.trim(vim.fn.system("poetry env info -p 2>/dev/null"))
-        if vim.v.shell_error == 0 and poetry_env_path ~= "" then
+        if vim.v.shell_error == 0 then
           local poetry_python = poetry_env_path .. "/bin/python"
           if vim.fn.executable(poetry_python) == 1 then
-            python_path_cache = poetry_python
-            return python_path_cache
+            return poetry_python
           end
         end
 
-        -- fallback to system Python
-        python_path_cache = vim.fn.exepath("python3") or "python3"
-        return python_path_cache
+        -- Fallback to system Python
+        return vim.fn.exepath("python3") or "python3"
       end
 
       vim.diagnostic.config({
@@ -197,10 +191,10 @@ return {
       vim.list_extend(ensure_installed, {
         'stylua', -- Lua language
         'basedpyright', -- Python language 
-        'debugpy', -- Python debugger
+        'debugpy',
         'sqlls'
       })
-      require('mason-tool-installer').setup { ensure_installed = ensure_installed }
+      require('mason-tool-installer').setup{ ensure_installed = ensure_installed }
 
       require('mason-lspconfig').setup {
         ensure_installed = {
